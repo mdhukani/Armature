@@ -22,14 +22,15 @@
   .layout{display:grid;grid-template-columns:1.7fr 1fr;gap:18px;align-items:start}
   @media (max-width:900px){.layout{grid-template-columns:1fr}}
   .panel{background:var(--panel);border:1px solid var(--rule);border-radius:2px;padding:14px}
-  .stage{position:relative;height:580px;background:var(--panel);border:1px solid var(--rule);border-radius:2px;overflow:hidden}
+  .stage{position:relative;height:580px;background:#07080a;border:1px solid #23262b;border-radius:2px;overflow:hidden}
   @media (max-width:600px){.stage{height:440px}}
   .stage canvas{width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
   .view-btns{position:absolute;top:10px;right:10px;display:flex;gap:6px}
-  .view-btns button{background:var(--panel);padding:6px 9px;font:500 11px/1 var(--mono);letter-spacing:.05em}
-  .hud{position:absolute;left:10px;bottom:10px;max-width:calc(100% - 20px);font:11px/1.4 var(--mono);color:var(--muted);background:var(--panel);padding:5px 8px;border:1px solid var(--rule);border-radius:2px;pointer-events:none}
-  .tag{position:absolute;left:0;top:0;font:600 11px/1 var(--mono);letter-spacing:.04em;padding:5px 7px;border-radius:2px;background:var(--panel);border:1px solid currentColor;pointer-events:none;white-space:nowrap;transform:translate(-50%,-150%)}
-  .loadfail{display:grid;place-items:center;height:100%;font:13px/1.5 var(--mono);color:var(--muted);padding:20px;text-align:center}
+  .view-btns button{background:rgba(20,22,26,.85);color:#d9dde2;border-color:#33373d;padding:6px 9px;font:500 11px/1 var(--mono);letter-spacing:.05em}
+  .view-btns button:hover{border-color:#6fb3ff;color:#fff}
+  .hud{position:absolute;left:10px;bottom:10px;max-width:calc(100% - 20px);font:11px/1.4 var(--mono);color:#aeb4bb;background:rgba(14,16,19,.85);padding:5px 8px;border:1px solid #2c3035;border-radius:2px;pointer-events:none}
+  .tag{position:absolute;left:0;top:0;font:600 11px/1 var(--mono);letter-spacing:.04em;padding:5px 7px;border-radius:2px;background:rgba(10,11,13,.92);border:1px solid currentColor;box-shadow:0 0 12px currentColor;pointer-events:none;white-space:nowrap;transform:translate(-50%,-150%)}
+  .loadfail{display:grid;place-items:center;height:100%;font:13px/1.5 var(--mono);color:#aeb4bb;padding:20px;text-align:center}
   .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
   button{font:500 13px/1 var(--sans);color:var(--ink);background:transparent;border:1px solid var(--rule);border-radius:3px;padding:9px 13px;cursor:pointer}
   button:hover{border-color:var(--muted)}
@@ -298,6 +299,8 @@ if(!window.THREE || !THREE.OrbitControls){
   return;
 }
 const tok=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const STAGE={ bg:'#07080a', floor:'#101215', grid:'#23272d', gridMain:'#2f4d6e', pad:'#4a5058',
+  dome:'#4da3ff', stone:'#d8cfbb', edge:'#0c0d0f', robot:'#d4d8dd', ghost:'#ffffff', ok:'#4fe08f', bad:'#ff5a3c' };
 
 // renderer, scene, camera
 const renderer=new THREE.WebGLRenderer({ canvas, antialias:true });
@@ -314,9 +317,10 @@ function resize(){ const w=stage.clientWidth, h=stage.clientHeight; renderer.set
 new ResizeObserver(resize).observe(stage);
 
 // lights
-scene.add(new THREE.HemisphereLight(0xffffff,0x8a887c,0.62));
-scene.add(new THREE.AmbientLight(0xffffff,0.12));
-const sun=new THREE.DirectionalLight(0xffffff,0.85);
+scene.add(new THREE.HemisphereLight(0xdfe8ff,0x1a1c20,0.55));
+scene.add(new THREE.AmbientLight(0xffffff,0.08));
+const rim=new THREE.DirectionalLight(0x6fb3ff,0.45); rim.position.set(-5,3,-4); scene.add(rim);
+const sun=new THREE.DirectionalLight(0xfff4e6,1.05);
 sun.position.set(4,7,2.6); sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
 Object.assign(sun.shadow.camera,{ left:-5, right:5, top:5, bottom:-5, near:0.5, far:20 });
@@ -367,7 +371,7 @@ function makeBrickMesh(seed){
 // robot
 const robotMat=new THREE.MeshStandardMaterial({ roughness:0.5, metalness:0.25 });
 const linkMat=new THREE.MeshStandardMaterial({ roughness:0.45, metalness:0.25 });
-const jointMat=new THREE.MeshStandardMaterial({ color:0xd9772b, roughness:0.5, metalness:0.2 });
+const jointMat=new THREE.MeshStandardMaterial({ color:0xff8a2b, emissive:0xff6a00, emissiveIntensity:0.25, roughness:0.45, metalness:0.2 });
 function part(geo,mat,x=0,y=0,z=0){ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; return m; }
 const robot=new THREE.Group(); scene.add(robot);
 robot.add(part(new THREE.CylinderGeometry(0.34,0.38,0.46,40),robotMat,0,0.23,0));
@@ -394,7 +398,7 @@ function applyPose(p){ waist.rotation.y=-p.th; shoulder.rotation.z=p.q1; elbow.r
 applyPose(cur);
 
 // ghost + verdict flash
-const ghostMatOk=new THREE.MeshBasicMaterial({ transparent:true, opacity:0.18, depthWrite:false });
+const ghostMatOk=new THREE.MeshBasicMaterial({ transparent:true, opacity:0.22, depthWrite:false });
 const ghostMatBad=new THREE.MeshBasicMaterial({ transparent:true, opacity:0.3, depthWrite:false });
 const ghostEdgeMat=new THREE.LineBasicMaterial({ transparent:true, opacity:0.7 });
 const ghost=new THREE.Mesh(brickGeo,ghostMatOk); ghost.add(new THREE.LineSegments(edgeGeo,ghostEdgeMat)); ghost.visible=false; scene.add(ghost);
@@ -403,17 +407,18 @@ const flashBox=new THREE.LineSegments(edgeGeo,flashMat); flashBox.scale.set(1.08
 let flash=null;
 
 function applyTheme(){
-  const bg=tok('--panel');
-  scene.background=new THREE.Color(bg); scene.fog=new THREE.Fog(bg,12,28);
-  floorMat.color.set(tok('--floor'));
+  scene.background=new THREE.Color(STAGE.bg); scene.fog=new THREE.Fog(STAGE.bg,10,24);
+  floorMat.color.set(STAGE.floor);
   if(grid) scene.remove(grid);
-  grid=new THREE.GridHelper(7,28,new THREE.Color(tok('--rule')),new THREE.Color(tok('--rule')));
+  grid=new THREE.GridHelper(7,28,new THREE.Color(STAGE.gridMain),new THREE.Color(STAGE.grid));
   grid.position.y=0.002; scene.add(grid);
-  fieldMat.color.set(tok('--muted')); domeMat.color.set(tok('--accent')); ringMat.color.set(tok('--accent'));
-  edgeMat.color.set(tok('--ink')); ghostMatOk.color.set(tok('--ink')); ghostMatBad.color.set(tok('--bad')); ghostEdgeMat.color.set(tok('--ink'));
-  const stone=new THREE.Color(tok('--stone'));
-  stoneMats.forEach((m,i)=>m.color.copy(stone).offsetHSL(0,0,(i-2.5)*0.025));
-  robotMat.color.set(tok('--robot')); if(phase==='idle'||phase==='returning') linkMat.color.set(tok('--robot'));
+  fieldMat.color.set(STAGE.pad); domeMat.color.set(STAGE.dome); ringMat.color.set(STAGE.dome);
+  domeMat.opacity=0.28; ringMat.opacity=0.9;
+  edgeMat.color.set(STAGE.edge); edgeMat.opacity=0.55;
+  ghostMatOk.color.set(STAGE.ghost); ghostMatBad.color.set(STAGE.bad); ghostEdgeMat.color.set(STAGE.ghost);
+  const stone=new THREE.Color(STAGE.stone);
+  stoneMats.forEach((m,i)=>m.color.copy(stone).offsetHSL(0,0,(i-2.5)*0.03));
+  robotMat.color.set('#9aa0a7'); if(phase==='idle'||phase==='returning') linkMat.color.set(STAGE.robot);
 }
 
 // ---------- game state ----------
@@ -484,7 +489,7 @@ function attemptPlace(s,source){
   if(source==='AI'){ aiBox.hidden=false; aiCoord.textContent=fmtSlot(s); aiVerdict.textContent='…'; aiVerdict.className='verdict'; }
   dispatchSend(source,s,ik);
   goal={ th:pose.th, q1:pose.q1, q2:pose.q2 };
-  linkMat.color.set(tok(ok?'--ok':'--bad'));
+  linkMat.color.set((ok?STAGE.ok:STAGE.bad));
   carriedYaw=s.yaw; carried.visible=true; carryKeep=!ok;
   phase='moving'; ghost.visible=false;
   pendingResolve={ s, source, ok, reason };
@@ -528,9 +533,9 @@ function finishAttempt(){
 }
 
 function showFlash(s,ok,text,secs){
-  flashMat.color.set(tok(ok?'--ok':'--bad'));
+  flashMat.color.set((ok?STAGE.ok:STAGE.bad));
   flashBox.position.set(s.x,s.r*BR.H+BR.H/2,s.z); flashBox.rotation.y=s.yaw; flashBox.visible=true;
-  tagEl.textContent=text; tagEl.style.color=tok(ok?'--ok':'--bad'); tagEl.hidden=false;
+  tagEl.textContent=text; tagEl.style.color=(ok?STAGE.ok:STAGE.bad); tagEl.hidden=false;
   flash={ pos:new THREE.Vector3(s.x,s.r*BR.H+BR.H,s.z), t:secs };
 }
 function updateFlash(dt){
@@ -625,7 +630,7 @@ function armStep(dt){
   applyPose(cur);
   const done=Math.abs(angDiff(goal.th,cur.th))<0.004&&Math.abs(goal.q1-cur.q1)<0.004&&Math.abs(goal.q2-cur.q2)<0.004;
   if(phase==='moving'&&done){ if(pendingResolve) finishAttempt(); phase='hold'; holdT=0; }
-  else if(phase==='hold'){ holdT+=dt; if(holdT>0.3){ phase='returning'; goal={ th:cur.th, q1:REST.q1, q2:REST.q2 }; linkMat.color.set(tok('--robot')); } }
+  else if(phase==='hold'){ holdT+=dt; if(holdT>0.3){ phase='returning'; goal={ th:cur.th, q1:REST.q1, q2:REST.q2 }; linkMat.color.set(STAGE.robot); } }
   else if(phase==='returning'&&done){ phase='idle'; carried.visible=false; updateGhost(); }
   if(phase==='hold'||phase==='returning'){ if(!carryKeep) carried.visible=false; }
 }
@@ -772,7 +777,7 @@ function newRound(){
   succCount=0; failCount=0; collapseCount=0; fallenTotal=0; roundOver=false; lastReachFrac=0;
   ai={ failed:new Set(), successFracs:[] };
   pendingResolve=null; flash=null; flashBox.visible=false; tagEl.hidden=true;
-  carried.visible=false; phase='idle'; goal={ th:cur.th, q1:REST.q1, q2:REST.q2 }; linkMat.color.set(tok('--robot'));
+  carried.visible=false; phase='idle'; goal={ th:cur.th, q1:REST.q1, q2:REST.q2 }; linkMat.color.set(STAGE.robot);
   traceBox.innerHTML=''; discoverBox.hidden=true; aiBox.hidden=true;
   setDispatchNow('Standing by.');
   updateStats(); updateGhost();

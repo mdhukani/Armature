@@ -1,31 +1,815 @@
-ARCHITECTURE STUDIO · ROBOTIC CONSTRAINT
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#f6f5f1;color:#16171a}[hidden]{display:none!important}</style></head><body>
+<title>Build By Reach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#f6f5f1; --ink:#16171a; --muted:#5b5f58; --rule:#cfd0c8; --panel:#fbfaf7;
+    --ok:#2f7d4f; --bad:#c7381f; --accent:#2f62a3;
+    --stone:#d6cfbf; --floor:#ecebe4; --robot:#3a3d42;
+    --display:"IBM Plex Sans Condensed",system-ui,sans-serif;
+    --sans:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){ :root:not([data-theme=light]){ --bg:#101110; --ink:#e7e8e3; --muted:#9a9d95; --rule:#2c2e2a; --panel:#171816; --stone:#aaa395; --floor:#1d1f1c; --robot:#8e9297; --accent:#7fa9d9; --ok:#5fb884; --bad:#ff6a4f; } }
+  :root[data-theme=dark]{ --bg:#101110; --ink:#e7e8e3; --muted:#9a9d95; --rule:#2c2e2a; --panel:#171816; --stone:#aaa395; --floor:#1d1f1c; --robot:#8e9297; --accent:#7fa9d9; --ok:#5fb884; --bad:#ff6a4f; }
+  body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans)}
+  main{max-width:1240px;margin:0 auto;padding:28px 20px 60px;display:grid;gap:18px}
+  h1{font-family:var(--display);font-weight:600;font-size:1.9rem;margin:2px 0 4px}
+  .label{font:500 11px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  p.lede{color:var(--muted);max-width:76ch;margin:0}
+  .layout{display:grid;grid-template-columns:1.7fr 1fr;gap:18px;align-items:start}
+  @media (max-width:900px){.layout{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--rule);border-radius:2px;padding:14px}
+  .stage{position:relative;height:580px;background:var(--panel);border:1px solid var(--rule);border-radius:2px;overflow:hidden}
+  @media (max-width:600px){.stage{height:440px}}
+  .stage canvas{width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
+  .view-btns{position:absolute;top:10px;right:10px;display:flex;gap:6px}
+  .view-btns button{background:var(--panel);padding:6px 9px;font:500 11px/1 var(--mono);letter-spacing:.05em}
+  .hud{position:absolute;left:10px;bottom:10px;max-width:calc(100% - 20px);font:11px/1.4 var(--mono);color:var(--muted);background:var(--panel);padding:5px 8px;border:1px solid var(--rule);border-radius:2px;pointer-events:none}
+  .tag{position:absolute;left:0;top:0;font:600 11px/1 var(--mono);letter-spacing:.04em;padding:5px 7px;border-radius:2px;background:var(--panel);border:1px solid currentColor;pointer-events:none;white-space:nowrap;transform:translate(-50%,-150%)}
+  .loadfail{display:grid;place-items:center;height:100%;font:13px/1.5 var(--mono);color:var(--muted);padding:20px;text-align:center}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  button{font:500 13px/1 var(--sans);color:var(--ink);background:transparent;border:1px solid var(--rule);border-radius:3px;padding:9px 13px;cursor:pointer}
+  button:hover{border-color:var(--muted)}
+  button.primary{border-color:var(--accent);color:var(--accent)}
+  .hint{margin-top:10px}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font:13px var(--mono)}
+  .stats div b{display:block;font:600 20px/1.2 var(--display);color:var(--ink)}
+  .stats div span{color:var(--muted);font:11px var(--mono);text-transform:uppercase;letter-spacing:.06em}
+  h3{font-family:var(--display);font-size:1rem;font-weight:600;margin:0 0 10px;letter-spacing:.02em}
+  .ai-box{font:13px/1.5 var(--mono);border-top:1px solid var(--rule);margin-top:12px;padding-top:12px}
+  .ai-box .verdict.ok{color:var(--ok)} .ai-box .verdict.bad{color:var(--bad)}
+  .trace{font:12px/1.6 var(--mono);max-height:240px;overflow-y:auto;border-top:1px solid var(--rule);margin-top:12px;padding-top:8px}
+  .trace .fail{color:var(--bad)} .trace .succ{color:var(--ok)} .trace .neutral{color:var(--muted)}
+  .discover{font:14px/1.5 var(--sans);border-top:1px solid var(--rule);margin-top:12px;padding-top:12px;color:var(--ink)}
+  .dispatch-row{display:flex;align-items:flex-start;gap:10px}
+  .avatar{width:36px;height:36px;border-radius:50%;background:var(--bg);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+  .bubble{background:var(--bg);border:1px solid var(--rule);border-radius:3px 10px 10px 10px;padding:9px 11px;font:13px/1.5 var(--mono);color:var(--ink)}
+</style>
 
-# Build By Reach
+<main>
+  <header>
+    <div class="label">ARCHITECTURE STUDIO · ROBOTIC CONSTRAINT</div>
+    <h1>Build By Reach</h1>
+    <p class="lede">A robotic arm stands at the centre of the build pad. You propose where each brick goes; the arm tests whether it can physically reach it, clear of the wall already standing, and gravity checks whether what's built can carry it. Whatever wall emerges comes from those limits — not from a drawing.</p>
+  </header>
 
-A wall built by a 2-link robotic arm. Bricks slide in quarter-brick steps, so you can stagger them, step them, or corbel the wall into a curve — but the arm still has to reach every one, and gravity checks every course. If the weight resting on a brick slips past what's holding it up, the wall comes down.
+  <div class="layout">
+    <div>
+      <div class="stage" id="stage">
+        <canvas id="cv"></canvas>
+        <div class="view-btns">
+          <button id="viewReset">RESET VIEW</button>
+          <button id="viewTop">TOP</button>
+          <button id="viewSide">SIDE</button>
+        </div>
+        <div class="hud" id="hud">ORIENTATION TANGENT +0° · Q / E TO ROTATE</div>
+        <div class="tag" id="tag" hidden></div>
+      </div>
+      <div class="controls">
+        <button class="primary" id="suggestBtn">SUGGEST NEXT MOVE</button>
+        <button id="rotL">⟲ ROTATE BRICK</button>
+        <button id="rotR">⟳ ROTATE BRICK</button>
+        <button id="undoBtn">UNDO</button>
+        <button id="newRoundBtn">NEW ROUND</button>
+        <button id="resetBtn">RESET</button>
+        <button id="domeBtn">REACH DOME: ON</button>
+      </div>
+      <div class="label hint">DRAG TO ORBIT · RIGHT-DRAG OR TWO FINGERS TO PAN · SCROLL OR PINCH TO ZOOM · CLICK THE FLOOR, A BRICK TOP OR A BRICK SIDE TO PROPOSE A BRICK</div>
+      <div class="ai-box" id="aiBox" hidden>
+        <div><b>AI PROPOSAL</b> — place brick at <span id="aiCoord"></span></div>
+        <div><b>ROBOT VERDICT</b> <span class="verdict" id="aiVerdict"></span></div>
+      </div>
+      <div class="discover" id="discover" hidden></div>
+    </div>
 
-**AI PROPOSAL** — place brick at ()
+    <div>
+      <div class="panel">
+        <h3>Dispatch</h3>
+        <div class="dispatch-row">
+          <div class="avatar">👷</div>
+          <div class="bubble" id="dispatchLine">Standing by.</div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:14px">
+        <h3>Construction stats</h3>
+        <div class="stats">
+          <div><b id="sHeight">0</b><span>wall height (courses)</span></div>
+          <div><b id="sBlocks">0</b><span>bricks standing</span></div>
+          <div><b id="sSucc">0</b><span>successful moves</span></div>
+          <div><b id="sFail">0</b><span>failed / <span id="sMax">5</span></span></div>
+          <div><b id="sReach">0%</b><span>reach used</span></div>
+          <div><b id="sCollapse">0</b><span>collapses</span></div>
+        </div>
+        <div class="trace" id="trace"></div>
+      </div>
+    </div>
+  </div>
+  <footer class="label">RED = REJECTED · GREEN = PLACED · BRICKS FACE ALONG THE CIRCLE AROUND THE ROBOT UNLESS ROTATED · OVERHANGS THAT CAN'T CARRY THEIR LOAD COLLAPSE</footer>
+</main>
 
-**ROBOT VERDICT**
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(() => {
+// ===== LOGIC START =====
+const BR = { L:0.44, D:0.20, H:0.12 };                 // brick: length, depth, height (m)
+const ARM = { SH:0.62, L1:1.05, L2:1.0, G:0.12 };      // shoulder height, upper arm, forearm, gripper
+const WORLD = { CLEAR:0.5, FIELD:3.0, SNAP:0.05, MAX_COURSE:18, OVERLAP:0.008, CONTACT:0.004 };
+let bricks = new Map();
 
-### Dispatch
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const snap=v=>Math.round(v/WORLD.SNAP)*WORLD.SNAP;
+function norm2(x,z){ const l=Math.hypot(x,z); return l>1e-9?[x/l,z/l]:[1,0]; }
+function tangentYaw(x,z){ return Math.hypot(x,z)<1e-6 ? 0 : Math.atan2(-x,-z); }
+function cross2(ax,az,bx,bz){ return ax*bz-az*bx; }
+function polyArea(p){ let a=0; for(let i=0;i<p.length;i++){ const j=(i+1)%p.length; a+=p[i][0]*p[j][1]-p[j][0]*p[i][1]; } return a/2; }
+function toCCW(p){ return polyArea(p)<0 ? p.slice().reverse() : p; }
+function footprint(x,z,yaw){
+  const ux=Math.cos(yaw), uz=-Math.sin(yaw), vx=Math.sin(yaw), vz=Math.cos(yaw), hl=BR.L/2, hd=BR.D/2;
+  return toCCW([[x+ux*hl+vx*hd,z+uz*hl+vz*hd],[x-ux*hl+vx*hd,z-uz*hl+vz*hd],[x-ux*hl-vx*hd,z-uz*hl-vz*hd],[x+ux*hl-vx*hd,z+uz*hl-vz*hd]]);
+}
+function segIntersect(P,Q,A,B){
+  const den=(P[0]-Q[0])*(A[1]-B[1])-(P[1]-Q[1])*(A[0]-B[0]);
+  if(Math.abs(den)<1e-12) return P.slice();
+  const t=((P[0]-A[0])*(A[1]-B[1])-(P[1]-A[1])*(A[0]-B[0]))/den;
+  return [P[0]+t*(Q[0]-P[0]), P[1]+t*(Q[1]-P[1])];
+}
+function clipPoly(subject,clip){                       // Sutherland–Hodgman, clip must be convex CCW
+  let out=subject;
+  for(let i=0;i<clip.length&&out.length;i++){
+    const a=clip[i], b=clip[(i+1)%clip.length], inp=out; out=[];
+    const inside=p=>cross2(b[0]-a[0],b[1]-a[1],p[0]-a[0],p[1]-a[1])>=-1e-12;
+    for(let k=0;k<inp.length;k++){
+      const P=inp[k], Q=inp[(k+1)%inp.length], pi=inside(P), qi=inside(Q);
+      if(pi) out.push(P);
+      if(pi!==qi) out.push(segIntersect(P,Q,a,b));
+    }
+  }
+  return out;
+}
+function polyCentroid(p){
+  let a=0,cx=0,cz=0;
+  for(let i=0;i<p.length;i++){ const j=(i+1)%p.length, f=p[i][0]*p[j][1]-p[j][0]*p[i][1]; a+=f; cx+=(p[i][0]+p[j][0])*f; cz+=(p[i][1]+p[j][1])*f; }
+  if(Math.abs(a)<1e-10){ let sx=0,sz=0; p.forEach(q=>{sx+=q[0];sz+=q[1];}); return [sx/p.length,sz/p.length]; }
+  return [cx/(3*a), cz/(3*a)];
+}
+function inConvex(poly,pt,eps){
+  for(let i=0;i<poly.length;i++){
+    const a=poly[i], b=poly[(i+1)%poly.length], ex=b[0]-a[0], ez=b[1]-a[1], len=Math.hypot(ex,ez)||1;
+    if(cross2(ex,ez,pt[0]-a[0],pt[1]-a[1])/len < -eps) return false;
+  }
+  return true;
+}
+function convexHull(pts){
+  const p=pts.map(q=>q.slice()).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+  if(p.length<3) return p;
+  const cr=(o,a,b)=>cross2(a[0]-o[0],a[1]-o[1],b[0]-o[0],b[1]-o[1]);
+  const lo=[],up=[];
+  for(const q of p){ while(lo.length>=2&&cr(lo[lo.length-2],lo[lo.length-1],q)<=1e-12) lo.pop(); lo.push(q); }
+  for(let i=p.length-1;i>=0;i--){ const q=p[i]; while(up.length>=2&&cr(up[up.length-2],up[up.length-1],q)<=1e-12) up.pop(); up.push(q); }
+  up.pop(); lo.pop(); return lo.concat(up);
+}
+function overlapArea(a,b){ const c=clipPoly(a,b); return c.length>=3?Math.abs(polyArea(c)):0; }
+function near(a,b){ return Math.hypot(a.x-b.x,a.z-b.z) < BR.L+0.06; }
+function makeSlot(x,z,r,yaw){ return { x, z, r, yaw, fp:footprint(x,z,yaw) }; }
+function occupiedAt(s){
+  for(const b of bricks.values()){ if(b.r!==s.r||!near(b,s)) continue; if(overlapArea(s.fp,b.fp)>WORLD.OVERLAP) return true; }
+  return false;
+}
+function supportersOf(s){
+  if(s.r===0) return [];
+  const out=[];
+  for(const b of bricks.values()){
+    if(b.r!==s.r-1||!near(b,s)) continue;
+    const poly=clipPoly(s.fp,b.fp);
+    if(poly.length>=3){ const A=Math.abs(polyArea(poly)); if(A>WORLD.CONTACT) out.push({ b, poly:toCCW(poly), A }); }
+  }
+  return out;
+}
+function distToOrigin(fp){
+  if(inConvex(fp,[0,0],0)) return 0;
+  let m=Infinity;
+  for(let i=0;i<fp.length;i++){
+    const a=fp[i], b=fp[(i+1)%fp.length], ex=b[0]-a[0], ez=b[1]-a[1];
+    const t=clamp(-(a[0]*ex+a[1]*ez)/(ex*ex+ez*ez||1),0,1);
+    m=Math.min(m,Math.hypot(a[0]+ex*t,a[1]+ez*t));
+  }
+  return m;
+}
+const tooClose = s => distToOrigin(s.fp) < WORLD.CLEAR;
+const outOfField = s => Math.hypot(s.x,s.z) > WORLD.FIELD;
 
-👷
+// Statics, top-down: each brick carries itself plus everything resting on it. That combined
+// centre of mass must sit over its support region (the convex hull of its contact patches
+// with the course below, or its own footprint on the floor). Load is handed down at real
+// contact points with barycentric weights so lower courses see where the weight actually lands.
+function findUnstable(){
+  const all=[...bricks.values()];
+  if(!all.length) return [];
+  const maxR=Math.max(...all.map(b=>b.r));
+  const load=new Map(); all.forEach(b=>load.set(b.id,{m:1,mx:b.x,mz:b.z}));
+  const add=(id,m,x,z)=>{ const t=load.get(id); t.m+=m; t.mx+=m*x; t.mz+=m*z; };
+  const eps=0.003, bad=[];
+  for(let r=maxR;r>=0;r--){
+    for(const b of all){
+      if(b.r!==r) continue;
+      const L=load.get(b.id), c=[L.mx/L.m, L.mz/L.m];
+      if(r===0){ if(!inConvex(b.fp,c,eps)) bad.push({ b, dir:norm2(c[0]-b.x,c[1]-b.z) }); continue; }
+      const sup=supportersOf(b);
+      if(!sup.length){ bad.push({ b, dir:null }); continue; }
+      const single=sup.find(s=>inConvex(s.poly,c,eps));
+      if(single){ add(single.b.id,L.m,c[0],c[1]); continue; }
+      const verts=[];
+      sup.forEach(s=>s.poly.forEach(v=>{ if(!verts.some(q=>Math.hypot(q.v[0]-v[0],q.v[1]-v[1])<1e-4&&q.id===s.b.id)) verts.push({ v, id:s.b.id }); }));
+      const hull=convexHull(verts.map(q=>q.v));
+      if(hull.length<3||!inConvex(hull,c,eps)){
+        let ax=0,az=0,at=0; sup.forEach(s=>{ const cc=polyCentroid(s.poly); ax+=cc[0]*s.A; az+=cc[1]*s.A; at+=s.A; });
+        bad.push({ b, dir:norm2(c[0]-ax/at, c[1]-az/at) }); continue;
+      }
+      let best=null, bestMin=-Infinity;
+      for(let i=0;i<verts.length;i++) for(let j=i+1;j<verts.length;j++) for(let k=j+1;k<verts.length;k++){
+        const a=verts[i].v, bb=verts[j].v, cc=verts[k].v;
+        const v0x=bb[0]-a[0], v0z=bb[1]-a[1], v1x=cc[0]-a[0], v1z=cc[1]-a[1];
+        const den=cross2(v0x,v0z,v1x,v1z); if(Math.abs(den)<1e-9) continue;
+        const px=c[0]-a[0], pz=c[1]-a[1];
+        const lb=cross2(px,pz,v1x,v1z)/den, lc=cross2(v0x,v0z,px,pz)/den, la=1-lb-lc;
+        const mn=Math.min(la,lb,lc);
+        if(mn>bestMin){ bestMin=mn; best=[[i,la],[j,lb],[k,lc]]; }
+      }
+      if(!best){ add(sup[0].b.id,L.m,c[0],c[1]); continue; }
+      const ws=best.map(([i,l])=>[i,Math.max(0,l)]), tot=ws.reduce((s,q)=>s+q[1],0)||1;
+      ws.forEach(([i,l])=>add(verts[i].id, L.m*l/tot, verts[i].v[0], verts[i].v[1]));
+    }
+  }
+  return bad;
+}
 
-Standing by.
+// Inverse kinematics: waist yaw + 2-link (shoulder, elbow) in the vertical plane through the target.
+function solveIK3(tx,ty,tz){
+  const th=Math.atan2(tz,tx), rho=Math.hypot(tx,tz), dy=ty-ARM.SH, L1=ARM.L1, L2=ARM.L2;
+  const d=Math.hypot(rho,dy), maxR=L1+L2-0.005, minR=Math.abs(L1-L2)+0.005;
+  const reachable = d<=maxR && d>=minR;
+  const dc=clamp(d||minR,minR,maxR), sc=dc/(d||1), pr=rho*sc, py=dy*sc;
+  const c2=clamp((dc*dc-L1*L1-L2*L2)/(2*L1*L2),-1,1);
+  const mk=q2=>({ th, q1:Math.atan2(py,pr)-Math.atan2(L2*Math.sin(q2),L1+L2*Math.cos(q2)), q2 });
+  return { reachable, d, rho, frac:d/(L1+L2), up:mk(-Math.acos(c2)), down:mk(Math.acos(c2)) };
+}
+function armJoints(p){
+  const cx=Math.cos(p.th), cz=Math.sin(p.th);
+  const er=ARM.L1*Math.cos(p.q1), ey=ARM.SH+ARM.L1*Math.sin(p.q1);
+  const wr=er+ARM.L2*Math.cos(p.q1+p.q2), wy=ey+ARM.L2*Math.sin(p.q1+p.q2);
+  return { S:[0,ARM.SH,0], E:[er*cx,ey,er*cz], W:[wr*cx,wy,wr*cz], G:[wr*cx,wy-ARM.G,wr*cz] };
+}
+function segHitsBrick(p,q,b,rad){
+  const c=Math.cos(b.yaw), s=Math.sin(b.yaw), by=b.r*BR.H+BR.H/2;
+  const loc=pt=>{ const dx=pt[0]-b.x, dz=pt[2]-b.z; return [dx*c-dz*s, pt[1]-by, dx*s+dz*c]; };
+  const a=loc(p), d=loc(q), h=[BR.L/2+rad, BR.H/2+rad, BR.D/2+rad];
+  let t0=0, t1=1;
+  for(let i=0;i<3;i++){
+    const dir=d[i]-a[i];
+    if(Math.abs(dir)<1e-9){ if(a[i]<-h[i]||a[i]>h[i]) return false; }
+    else { let ta=(-h[i]-a[i])/dir, tb=(h[i]-a[i])/dir; if(ta>tb){ const t=ta; ta=tb; tb=t; } t0=Math.max(t0,ta); t1=Math.min(t1,tb); if(t0>t1) return false; }
+  }
+  return true;
+}
+function pathBlocked(slot,pose){
+  const J=armJoints(pose);
+  if(J.E[1]<0.05) return true;                          // elbow would hit the floor
+  const segs=[[J.S,J.E,0.07],[J.E,J.W,0.06],[J.W,J.G,0.04]];
+  for(const b of bricks.values()){
+    if(b.r<slot.r && overlapArea(slot.fp,b.fp)>0.001) continue;   // the stack it's landing on
+    for(const [p,q,rad] of segs) if(segHitsBrick(p,q,b,rad)) return true;
+  }
+  return false;
+}
+// ===== LOGIC END =====
 
-### Construction stats
+// ===== UI / RENDERING =====
+const el=id=>document.getElementById(id);
+const stage=el('stage'), canvas=el('cv'), hud=el('hud'), tagEl=el('tag');
+const traceBox=el('trace'), discoverBox=el('discover'), aiBox=el('aiBox'), aiCoord=el('aiCoord'), aiVerdict=el('aiVerdict');
+const dispatchLine=el('dispatchLine');
 
-**0**wall height
+if(!window.THREE || !THREE.OrbitControls){
+  stage.innerHTML='<div class="loadfail">The 3D engine (three.js) didn\'t load.<br>Check your connection and reload the page.</div>';
+  return;
+}
+const tok=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
-**0**bricks standing
+// renderer, scene, camera
+const renderer=new THREE.WebGLRenderer({ canvas, antialias:true });
+renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(40,1,0.05,80);
+const controls=new THREE.OrbitControls(camera,canvas);
+controls.enableDamping=true; controls.dampingFactor=0.08; controls.screenSpacePanning=true;
+controls.maxPolarAngle=Math.PI/2-0.04; controls.minDistance=1.5; controls.maxDistance=16;
+const VIEWS={ reset:[[5.4,3.7,5.4],[0,0.7,0]], top:[[0.01,9.5,0.01],[0,0,0]], side:[[0,1.3,7.6],[0,0.9,0]] };
+function setView(n){ const v=VIEWS[n]; camera.position.set(...v[0]); controls.target.set(...v[1]); controls.update(); }
+function resize(){ const w=stage.clientWidth, h=stage.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(stage);
 
-**0**successful moves
+// lights
+scene.add(new THREE.HemisphereLight(0xffffff,0x8a887c,0.62));
+scene.add(new THREE.AmbientLight(0xffffff,0.12));
+const sun=new THREE.DirectionalLight(0xffffff,0.85);
+sun.position.set(4,7,2.6); sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{ left:-5, right:5, top:5, bottom:-5, near:0.5, far:20 });
+sun.shadow.bias=-0.0006;
+scene.add(sun);
 
-**0**failed / 5
+// floor, grid, pad edge
+const floorMat=new THREE.MeshStandardMaterial({ roughness:1, metalness:0 });
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,40), floorMat);
+floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
+let grid=null;
+const fieldMat=new THREE.LineDashedMaterial({ dashSize:0.12, gapSize:0.08, transparent:true, opacity:0.8 });
+function circlePts(rad,y,n=96){ const p=[]; for(let i=0;i<=n;i++){ const a=i/n*Math.PI*2; p.push(new THREE.Vector3(rad*Math.cos(a),y,rad*Math.sin(a))); } return p; }
+const fieldRing=new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(WORLD.FIELD,0.004)), fieldMat);
+fieldRing.computeLineDistances(); scene.add(fieldRing);
 
-**0%**reach used
+// reach dome: sphere around the shoulder, clipped at the floor, plus the floor-level reach ring
+const domeMat=new THREE.LineBasicMaterial({ transparent:true, opacity:0.2 });
+const ringMat=new THREE.LineDashedMaterial({ dashSize:0.08, gapSize:0.06, transparent:true, opacity:0.75 });
+const dome=new THREE.Group();
+(function buildDome(){
+  const R=ARM.L1+ARM.L2, SH=ARM.SH;
+  for(let y=0.3;y<SH+R;y+=0.3){ const rr=Math.sqrt(Math.max(0,R*R-(y-SH)**2)); if(rr>0.05) dome.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(rr,y,72)),domeMat)); }
+  const ph0=-Math.asin(SH/R);
+  for(let k=0;k<12;k++){
+    const a=k/12*Math.PI*2, pts=[];
+    for(let i=0;i<=40;i++){ const ph=ph0+(Math.PI/2-ph0)*i/40, rr=R*Math.cos(ph); pts.push(new THREE.Vector3(rr*Math.cos(a),SH+R*Math.sin(ph),rr*Math.sin(a))); }
+    dome.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),domeMat));
+  }
+  const ring=new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(floorReach(),0.006)),ringMat);
+  ring.computeLineDistances(); dome.add(ring);
+})();
+scene.add(dome);
+function floorReach(){ const wy=BR.H+ARM.G, R=ARM.L1+ARM.L2; return Math.sqrt(Math.max(0,R*R-(wy-ARM.SH)**2)); }
 
-**0**collapses
+// bricks
+const brickGeo=new THREE.BoxGeometry(BR.L,BR.H,BR.D);
+const edgeGeo=new THREE.EdgesGeometry(brickGeo);
+const edgeMat=new THREE.LineBasicMaterial({ transparent:true, opacity:0.4 });
+const stoneMats=Array.from({length:6},()=>new THREE.MeshStandardMaterial({ roughness:0.88, metalness:0 }));
+function makeBrickMesh(seed){
+  const m=new THREE.Mesh(brickGeo, stoneMats[seed%stoneMats.length]);
+  m.castShadow=true; m.receiveShadow=true;
+  m.add(new THREE.LineSegments(edgeGeo, edgeMat));
+  return m;
+}
 
-CLICK TO PLACE A BRICK · OFFSET IT TO STEP OR CURVE THE WALL · RED = REJECTED · OVERHANGS THAT CAN'T CARRY THEIR LOAD COLLAPSE
+// robot
+const robotMat=new THREE.MeshStandardMaterial({ roughness:0.5, metalness:0.25 });
+const linkMat=new THREE.MeshStandardMaterial({ roughness:0.45, metalness:0.25 });
+const jointMat=new THREE.MeshStandardMaterial({ color:0xd9772b, roughness:0.5, metalness:0.2 });
+function part(geo,mat,x=0,y=0,z=0){ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; return m; }
+const robot=new THREE.Group(); scene.add(robot);
+robot.add(part(new THREE.CylinderGeometry(0.34,0.38,0.46,40),robotMat,0,0.23,0));
+const waist=new THREE.Group(); waist.position.y=0.46; robot.add(waist);
+waist.add(part(new THREE.CylinderGeometry(0.28,0.3,0.1,40),jointMat,0,0.05,0));
+waist.add(part(new THREE.BoxGeometry(0.2,0.14,0.32),robotMat,0,0.12,0));
+const shoulder=new THREE.Group(); shoulder.position.y=ARM.SH-0.46; waist.add(shoulder);
+const jCyl=(r,l)=>{ const g=new THREE.CylinderGeometry(r,r,l,28); g.rotateX(Math.PI/2); return g; };
+shoulder.add(part(jCyl(0.11,0.34),jointMat));
+shoulder.add(part(new THREE.BoxGeometry(ARM.L1,0.14,0.14),linkMat,ARM.L1/2,0,0));
+const elbow=new THREE.Group(); elbow.position.x=ARM.L1; shoulder.add(elbow);
+elbow.add(part(jCyl(0.09,0.24),jointMat));
+elbow.add(part(new THREE.BoxGeometry(ARM.L2,0.11,0.11),linkMat,ARM.L2/2,0,0));
+const wrist=new THREE.Group(); wrist.position.x=ARM.L2; elbow.add(wrist);
+wrist.add(part(new THREE.SphereGeometry(0.07,20,14),jointMat));
+wrist.add(part(new THREE.BoxGeometry(0.1,0.07,0.12),robotMat,0,-0.05,0));
+wrist.add(part(new THREE.BoxGeometry(0.02,0.05,0.1),robotMat,-0.045,-0.1,0));
+wrist.add(part(new THREE.BoxGeometry(0.02,0.05,0.1),robotMat,0.045,-0.1,0));
+const carried=makeBrickMesh(3); carried.position.y=-ARM.G-BR.H/2; carried.visible=false; wrist.add(carried);
+let carriedYaw=0;
+const REST={ q1:1.25, q2:-2.1 };
+let cur={ th:Math.PI*0.25, q1:REST.q1, q2:REST.q2 }, goal={ ...cur };
+function applyPose(p){ waist.rotation.y=-p.th; shoulder.rotation.z=p.q1; elbow.rotation.z=p.q2; wrist.rotation.z=-(p.q1+p.q2); carried.rotation.y=carriedYaw+p.th; }
+applyPose(cur);
+
+// ghost + verdict flash
+const ghostMatOk=new THREE.MeshBasicMaterial({ transparent:true, opacity:0.18, depthWrite:false });
+const ghostMatBad=new THREE.MeshBasicMaterial({ transparent:true, opacity:0.3, depthWrite:false });
+const ghostEdgeMat=new THREE.LineBasicMaterial({ transparent:true, opacity:0.7 });
+const ghost=new THREE.Mesh(brickGeo,ghostMatOk); ghost.add(new THREE.LineSegments(edgeGeo,ghostEdgeMat)); ghost.visible=false; scene.add(ghost);
+const flashMat=new THREE.LineBasicMaterial({ linewidth:2 });
+const flashBox=new THREE.LineSegments(edgeGeo,flashMat); flashBox.scale.set(1.08,1.15,1.15); flashBox.visible=false; scene.add(flashBox);
+let flash=null;
+
+function applyTheme(){
+  const bg=tok('--panel');
+  scene.background=new THREE.Color(bg); scene.fog=new THREE.Fog(bg,12,28);
+  floorMat.color.set(tok('--floor'));
+  if(grid) scene.remove(grid);
+  grid=new THREE.GridHelper(7,28,new THREE.Color(tok('--rule')),new THREE.Color(tok('--rule')));
+  grid.position.y=0.002; scene.add(grid);
+  fieldMat.color.set(tok('--muted')); domeMat.color.set(tok('--accent')); ringMat.color.set(tok('--accent'));
+  edgeMat.color.set(tok('--ink')); ghostMatOk.color.set(tok('--ink')); ghostMatBad.color.set(tok('--bad')); ghostEdgeMat.color.set(tok('--ink'));
+  const stone=new THREE.Color(tok('--stone'));
+  stoneMats.forEach((m,i)=>m.color.copy(stone).offsetHSL(0,0,(i-2.5)*0.025));
+  robotMat.color.set(tok('--robot')); if(phase==='idle'||phase==='returning') linkMat.color.set(tok('--robot'));
+}
+
+// ---------- game state ----------
+let nextId=1, order=[], trace=[], moveIdx=0;
+let succCount=0, failCount=0, collapseCount=0, fallenTotal=0, roundOver=false, lastReachFrac=0;
+let ai={ failed:new Set(), successFracs:[] };
+let falling=[], hover=null, rotOffset=0;
+let phase='idle', holdT=0, pendingResolve=null, carryKeep=false;
+const MAX_FAIL=5;
+const slotKey=s=>s.x.toFixed(2)+','+s.z.toFixed(2)+','+s.r;
+const fmtSlot=s=>'('+s.x.toFixed(2)+', '+s.z.toFixed(2)+') C'+(s.r+1);
+const isCollapsing=()=>falling.some(f=>!f.resting);
+
+// ---------- trace + stats ----------
+function logTrace(source,s,success,reason,neutral){
+  moveIdx++; trace.push({ i:moveIdx, source, slot:s, success, reason });
+  const d=document.createElement('div');
+  d.className=neutral?'neutral':(success?'succ':'fail');
+  d.textContent=String(moveIdx).padStart(2,'0')+' — '+source+' — '+fmtSlot(s)+' — '+(success?'SUCCESS':(neutral?reason:'FAILURE · '+reason));
+  traceBox.appendChild(d); traceBox.scrollTop=traceBox.scrollHeight;
+}
+function updateStats(){
+  let maxH=0; for(const b of bricks.values()) maxH=Math.max(maxH,b.r+1);
+  el('sHeight').textContent=maxH; el('sBlocks').textContent=bricks.size;
+  el('sSucc').textContent=succCount; el('sFail').textContent=failCount; el('sMax').textContent=MAX_FAIL;
+  el('sReach').textContent=Math.round(lastReachFrac*100)+'%'; el('sCollapse').textContent=collapseCount;
+}
+
+// ---------- dispatch voice ----------
+const DISPATCH_MIN_MS=1100;
+let dispatchGen=0, dispatchSentAt=0;
+const setDispatch=t=>{ dispatchLine.textContent=t; };
+const setDispatchNow=t=>{ dispatchGen++; setDispatch(t); };
+function dispatchSend(source,s,ik){
+  dispatchGen++; dispatchSentAt=performance.now();
+  const who=source==='AI'?'AI proposes':'Sending';
+  setDispatch(`${who} a brick to course ${s.r+1}, ${ik.rho.toFixed(2)} m out from the robot — ${Math.round(ik.frac*100)}% of reach. Here we go!`);
+}
+function dispatchResolve(ok,reason,standing,lost){
+  const gen=dispatchGen;
+  const lines={
+    UNREACHABLE:`Too far — scrubbing that one, it's past the arm's reach.`,
+    BLOCKED:`Wall's in the way. Can't get the arm around it from here.`,
+    'NO SUPPORT':`Nothing under that spot to rest it on. Holding.`,
+    COLLAPSE:`Set it down — and it's tipping! ${lost} brick${lost===1?'':'s'} came down.`,
+  };
+  const text=ok?`Set. ${standing} on the wall now.`:(lines[reason]||`No good — ${reason}.`);
+  setTimeout(()=>{ if(dispatchGen===gen) setDispatch(text); }, Math.max(0,DISPATCH_MIN_MS-(performance.now()-dispatchSentAt)));
+}
+
+// ---------- propose → test → place ----------
+function attemptPlace(s,source){
+  if(roundOver||phase!=='idle'||isCollapsing()) return;
+  if(s.r>=WORLD.MAX_COURSE){ setDispatchNow("That's above the highest course I'm cleared for."); return; }
+  if(outOfField(s)){ setDispatchNow("That's off the build pad."); return; }
+  if(tooClose(s)){ setDispatchNow("Too close — that's where the robot stands."); return; }
+  if(occupiedAt(s)){ setDispatchNow("That spot's already taken."); return; }
+  const by=s.r*BR.H+BR.H/2, wy=by+BR.H/2+ARM.G;
+  const ik=solveIK3(s.x,wy,s.z); lastReachFrac=ik.frac;
+  let ok=ik.reachable, reason=ok?'':'UNREACHABLE', pose=ik.up;
+  if(ok){
+    if(!pathBlocked(s,ik.up)) pose=ik.up;
+    else if(!pathBlocked(s,ik.down)) pose=ik.down;
+    else { ok=false; reason='BLOCKED'; }
+  }
+  if(ok && s.r>0 && !supportersOf(s).length){ ok=false; reason='NO SUPPORT'; }
+
+  if(source==='AI'){ aiBox.hidden=false; aiCoord.textContent=fmtSlot(s); aiVerdict.textContent='…'; aiVerdict.className='verdict'; }
+  dispatchSend(source,s,ik);
+  goal={ th:pose.th, q1:pose.q1, q2:pose.q2 };
+  linkMat.color.set(tok(ok?'--ok':'--bad'));
+  carriedYaw=s.yaw; carried.visible=true; carryKeep=!ok;
+  phase='moving'; ghost.visible=false;
+  pendingResolve={ s, source, ok, reason };
+}
+
+function finishAttempt(){
+  const { s, source, ok, reason }=pendingResolve;
+  let fell=0;
+  if(ok){
+    const b={ id:nextId, x:s.x, z:s.z, r:s.r, yaw:s.yaw, fp:s.fp, seed:nextId*7+3 }; nextId++;
+    b.mesh=makeBrickMesh(b.seed); b.mesh.position.set(b.x,b.r*BR.H+BR.H/2,b.z); b.mesh.rotation.y=b.yaw; b.mesh.userData.brick=b;
+    scene.add(b.mesh); bricks.set(b.id,b); order.push(b.id);
+    carried.visible=false; succCount++;
+    if(source==='AI') ai.successFracs.push(lastReachFrac);
+    logTrace(source,s,true);
+    fell=settle();
+    if(fell>0){
+      failCount++; collapseCount++;
+      if(source==='AI') ai.failed.add(slotKey(s));
+      logTrace('GRAVITY',s,false,'COLLAPSE ×'+fell);
+      showFlash(s,false,'COLLAPSE ×'+fell,1.4);
+      dispatchResolve(false,'COLLAPSE',bricks.size,fell);
+    } else {
+      showFlash(s,true,'PLACED',0.7);
+      dispatchResolve(true,null,bricks.size);
+    }
+  } else {
+    failCount++;
+    if(source==='AI') ai.failed.add(slotKey(s));
+    showFlash(s,false,reason,1.0);
+    logTrace(source,s,false,reason);
+    dispatchResolve(false,reason,bricks.size);
+  }
+  if(source==='AI'){
+    aiVerdict.textContent=!ok?'✕ '+reason:(fell?'✓ REACHABLE · ✕ COLLAPSED':'✓ REACHABLE');
+    aiVerdict.className='verdict '+(ok&&!fell?'ok':'bad');
+  }
+  updateStats();
+  if(failCount>=MAX_FAIL) endRound();
+  pendingResolve=null;
+}
+
+function showFlash(s,ok,text,secs){
+  flashMat.color.set(tok(ok?'--ok':'--bad'));
+  flashBox.position.set(s.x,s.r*BR.H+BR.H/2,s.z); flashBox.rotation.y=s.yaw; flashBox.visible=true;
+  tagEl.textContent=text; tagEl.style.color=tok(ok?'--ok':'--bad'); tagEl.hidden=false;
+  flash={ pos:new THREE.Vector3(s.x,s.r*BR.H+BR.H,s.z), t:secs };
+}
+function updateFlash(dt){
+  if(!flash) return;
+  flash.t-=dt;
+  if(flash.t<=0){ flash=null; flashBox.visible=false; tagEl.hidden=true; return; }
+  const v=flash.pos.clone().project(camera);
+  if(v.z>1){ tagEl.hidden=true; return; }
+  tagEl.hidden=false;
+  tagEl.style.left=((v.x+1)/2*stage.clientWidth)+'px';
+  tagEl.style.top=((1-v.y)/2*stage.clientHeight)+'px';
+}
+
+// ---------- gravity + collapse ----------
+function settle(){
+  let wave=0, total=0, firstDir=null;
+  while(wave<400){
+    const bad=findUnstable();
+    if(!bad.length) break;
+    for(const { b, dir } of bad){
+      if(wave===0 && dir && !firstDir) firstDir=dir;
+      startFall(b, dir||firstDir||norm2(b.x,b.z), wave);
+      bricks.delete(b.id); total++;
+    }
+    wave++;
+  }
+  order=order.filter(id=>bricks.has(id));
+  fallenTotal+=total;
+  return total;
+}
+function startFall(b,dir,wave){
+  const m=b.mesh; m.userData.brick=null;
+  m.material=m.material.clone(); m.material.transparent=true;
+  const e=m.children[0]; e.material=e.material.clone();
+  const sp=0.35+Math.random()*0.45+b.r*0.05;
+  const axis=new THREE.Vector3(dir[1],0,-dir[0]).normalize();
+  falling.push({ mesh:m, q0:m.quaternion.clone(), axis,
+    v:new THREE.Vector3(dir[0]*sp,Math.random()*0.3,dir[1]*sp),
+    w:axis.clone().multiplyScalar(2.2+Math.random()*2.6),
+    delay:0.3+wave*0.13+Math.random()*0.05, wobble:wave===0, t:0, rest:0, still:0, resting:false, alpha:1 });
+}
+const CORNERS=[]; for(const sx of [-1,1]) for(const sy of [-1,1]) for(const sz of [-1,1]) CORNERS.push(new THREE.Vector3(sx*BR.L/2,sy*BR.H/2,sz*BR.D/2));
+const AXES=[new THREE.Vector3(1,0,0),new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,1)];
+const tv=new THREE.Vector3(), tq=new THREE.Quaternion();
+function updateFalling(dt){
+  const G=7.5;
+  for(const f of falling){
+    const m=f.mesh; f.t+=dt;
+    if(f.delay>0){
+      f.delay-=dt;
+      if(f.wobble){ tq.setFromAxisAngle(f.axis,Math.sin(f.t*38)*0.045); m.quaternion.copy(tq).multiply(f.q0); }
+      if(f.delay<=0) m.quaternion.copy(f.q0);
+      continue;
+    }
+    if(!f.resting){
+      f.v.y-=G*dt; m.position.addScaledVector(f.v,dt);
+      const wl=f.w.length();
+      if(wl>1e-6){ tq.setFromAxisAngle(tv.copy(f.w).divideScalar(wl),wl*dt); m.quaternion.premultiply(tq); }
+      let minY=Infinity;
+      for(const c of CORNERS){ tv.copy(c).applyQuaternion(m.quaternion); minY=Math.min(minY,tv.y+m.position.y); }
+      if(minY<0){
+        m.position.y-=minY;
+        if(f.v.y<-0.8){ f.v.y*=-0.25; f.v.x*=0.6; f.v.z*=0.6; f.w.multiplyScalar(0.5); }
+        else {
+          f.v.y=Math.max(0,f.v.y);
+          const fr=Math.pow(0.86,dt*60); f.v.x*=fr; f.v.z*=fr; f.w.multiplyScalar(Math.pow(0.7,dt*60));
+          let best=null, by=-1;
+          for(const a of AXES){ const w=a.clone().applyQuaternion(m.quaternion); if(Math.abs(w.y)>by){ by=Math.abs(w.y); best=w; } }
+          const flat=new THREE.Quaternion().setFromUnitVectors(best,new THREE.Vector3(0,Math.sign(best.y)||1,0)).multiply(m.quaternion);
+          m.quaternion.slerp(flat,1-Math.pow(0.82,dt*60));
+          if(Math.hypot(f.v.x,f.v.z)<0.03 && f.w.length()<0.05 && by>0.999){ f.still+=dt; if(f.still>0.25) f.resting=true; }
+        }
+      }
+      if(f.t>7 || m.position.length()>30) f.resting=true;
+    } else {
+      f.rest+=dt;
+      if(f.rest>1.6){ f.alpha-=dt/0.7; m.material.opacity=Math.max(0,f.alpha); m.children[0].material.opacity=Math.max(0,f.alpha)*0.4; }
+    }
+  }
+  falling=falling.filter(f=>{
+    if(f.alpha>0) return true;
+    scene.remove(f.mesh); f.mesh.material.dispose(); f.mesh.children[0].material.dispose();
+    return false;
+  });
+}
+
+// ---------- arm motion ----------
+function angDiff(a,b){ let d=(a-b)%(Math.PI*2); if(d>Math.PI) d-=Math.PI*2; if(d<-Math.PI) d+=Math.PI*2; return d; }
+function armStep(dt){
+  const k=1-Math.exp(-dt*6.5);
+  cur.th+=angDiff(goal.th,cur.th)*k; cur.q1+=(goal.q1-cur.q1)*k; cur.q2+=(goal.q2-cur.q2)*k;
+  applyPose(cur);
+  const done=Math.abs(angDiff(goal.th,cur.th))<0.004&&Math.abs(goal.q1-cur.q1)<0.004&&Math.abs(goal.q2-cur.q2)<0.004;
+  if(phase==='moving'&&done){ if(pendingResolve) finishAttempt(); phase='hold'; holdT=0; }
+  else if(phase==='hold'){ holdT+=dt; if(holdT>0.3){ phase='returning'; goal={ th:cur.th, q1:REST.q1, q2:REST.q2 }; linkMat.color.set(tok('--robot')); } }
+  else if(phase==='returning'&&done){ phase='idle'; carried.visible=false; updateGhost(); }
+  if(phase==='hold'||phase==='returning'){ if(!carryKeep) carried.visible=false; }
+}
+
+// ---------- end of round ----------
+function endRound(){
+  roundOver=true; ghost.visible=false;
+  discoverBox.hidden=false;
+  discoverBox.textContent='FOUND CONFIGURATION — '+describeRound()+' ('+bricks.size+' bricks standing, '+failCount+' failures)';
+}
+function describeRound(){
+  const all=[...bricks.values()], parts=[];
+  if(!all.length){ parts.push(collapseCount?'NOTHING WAS LEFT STANDING.':'NO BRICKS WERE PLACED.'); }
+  else {
+    const c0=all.filter(b=>b.r===0), bins=new Array(360).fill(false);
+    c0.forEach(b=>{ const rho=Math.hypot(b.x,b.z), a=Math.atan2(b.z,b.x)*180/Math.PI, half=(BR.L/2)/rho*180/Math.PI;
+      for(let d=Math.floor(a-half);d<=Math.ceil(a+half);d++) bins[((d%360)+360)%360]=true; });
+    const cov=bins.filter(Boolean).length;
+    const rhos=c0.map(b=>Math.hypot(b.x,b.z)), mean=rhos.reduce((s,v)=>s+v,0)/(rhos.length||1);
+    const sd=Math.sqrt(rhos.reduce((s,v)=>s+(v-mean)**2,0)/(rhos.length||1));
+    let plan;
+    if(cov>=330) plan='THE WALL CLOSED INTO A FULL RING AROUND THE ROBOT';
+    else if(cov>=120) plan=`THE WALL WRAPPED ${cov}° AROUND THE ROBOT`;
+    else if(cov>=45) plan=`THE WALL BENT INTO A ${cov}° ARC AROUND THE ROBOT`;
+    else plan='THE WALL STAYED A SHORT RUN';
+    if(c0.length>=3 && sd<0.12){
+      plan+=`, HOLDING A NEAR-CONSTANT RADIUS OF ${mean.toFixed(2)} M FROM THE ARM`;
+      if(mean>=0.85*floorReach()) plan+=` — CLOSE TO THE EDGE OF ITS FLOOR REACH (${floorReach().toFixed(2)} M)`;
+    }
+    parts.push(plan+'.');
+    const maxR=Math.max(...all.map(b=>b.r));
+    if(maxR>=2){
+      const top=all.filter(b=>b.r===maxR), mt=top.reduce((s,b)=>s+Math.hypot(b.x,b.z),0)/top.length, dr=mt-mean;
+      if(dr<=-0.08) parts.push(`AS IT ROSE IT CORBELLED ${Math.round(-dr*100)} CM INWARD TOWARD THE ARM OVER ${maxR+1} COURSES.`);
+      else if(dr>=0.08) parts.push(`AS IT ROSE IT LEANED ${Math.round(dr*100)} CM OUTWARD, AWAY FROM THE ARM, OVER ${maxR+1} COURSES.`);
+      else parts.push(`IT ROSE NEARLY PLUMB THROUGH ${maxR+1} COURSES.`);
+    } else parts.push(`IT NEVER GOT ABOVE ${maxR+1} COURSE${maxR?'S':''}.`);
+  }
+  if(collapseCount) parts.push(`GRAVITY BROUGHT IT DOWN ${collapseCount} TIME${collapseCount>1?'S':''}, ${fallenTotal} BRICK${fallenTotal===1?'':'S'} LOST.`);
+  const far=trace.filter(m=>m.reason==='UNREACHABLE').length, blk=trace.filter(m=>m.reason==='BLOCKED').length;
+  if(far) parts.push(`${far} PLACEMENT${far>1?'S WERE':' WAS'} BEYOND THE ARM'S REACH.`);
+  if(blk) parts.push(`${blk} PLACEMENT${blk>1?'S WERE':' WAS'} BLOCKED BY THE WALL ITSELF.`);
+  return parts.join(' ');
+}
+
+// ---------- AI proposer (same test as the player) ----------
+function suggestMove(){
+  if(roundOver||phase!=='idle'||isCollapsing()) return;
+  const cands=new Map();
+  const push=(x,z,r)=>{
+    x=snap(x); z=snap(z);
+    const s=makeSlot(x,z,r,tangentYaw(x,z)), k=slotKey(s);
+    if(cands.has(k)||r>=WORLD.MAX_COURSE||outOfField(s)||tooClose(s)||occupiedAt(s)) return;
+    if(r>0&&!supportersOf(s).length) return;
+    cands.set(k,s);
+  };
+  if(!bricks.size){ for(const rad of [1.0,1.3,1.6,1.9,2.2]) for(let k=0;k<12;k++){ const a=k/12*Math.PI*2; push(rad*Math.cos(a),rad*Math.sin(a),0); } }
+  for(const b of bricks.values()){
+    const ux=Math.cos(b.yaw), uz=-Math.sin(b.yaw), [ix,iz]=norm2(-b.x,-b.z);
+    for(const sg of [-1,1]) push(b.x+ux*BR.L*1.02*sg, b.z+uz*BR.L*1.02*sg, b.r);
+    for(const off of [-0.5,0,0.5]) for(const inn of [0,0.06,0.12]) push(b.x+ux*BR.L*off+ix*inn, b.z+uz*BR.L*off+iz*inn, b.r+1);
+  }
+  if(!cands.size){ setDispatchNow("AI can't find anywhere left to propose."); return; }
+  const ideal=ai.successFracs.length?ai.successFracs.reduce((s,v)=>s+v,0)/ai.successFracs.length:0.75;
+  let best=null, bestScore=-Infinity;
+  for(const s of cands.values()){
+    const wy=s.r*BR.H+BR.H+ARM.G, frac=Math.hypot(Math.hypot(s.x,s.z),wy-ARM.SH)/(ARM.L1+ARM.L2);
+    let sc=s.r*10-Math.abs(frac-ideal)*30+Math.random()*6;
+    if(s.r>0&&supportersOf(s).length>=2) sc+=4;
+    if(ai.failed.has(slotKey(s))) sc-=20;
+    if(sc>bestScore){ bestScore=sc; best=s; }
+  }
+  attemptPlace(best,'AI');
+}
+
+// ---------- picking ----------
+const raycaster=new THREE.Raycaster(), ndc=new THREE.Vector2();
+function slotAt(e){
+  const r=canvas.getBoundingClientRect();
+  ndc.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  raycaster.setFromCamera(ndc,camera);
+  const targets=[floor]; for(const b of bricks.values()) targets.push(b.mesh);
+  const hit=raycaster.intersectObjects(targets,false)[0];
+  if(!hit) return null;
+  let x,z,course;
+  if(hit.object===floor){ x=hit.point.x; z=hit.point.z; course=0; }
+  else {
+    const b=hit.object.userData.brick; if(!b||!hit.face) return null;
+    const n=hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+    if(n.y>0.7){ x=hit.point.x; z=hit.point.z; course=b.r+1; }
+    else if(n.y<-0.7) return null;
+    else {
+      const along=Math.abs(n.x*Math.cos(b.yaw)-n.z*Math.sin(b.yaw));
+      const off=along>0.7?BR.L/2:BR.D/2;
+      x=hit.point.x+n.x*off; z=hit.point.z+n.z*off; course=b.r;
+    }
+  }
+  x=snap(x); z=snap(z);
+  return makeSlot(x,z,course,tangentYaw(x,z)+rotOffset*Math.PI/180);
+}
+function invalidReason(s){
+  if(s.r>=WORLD.MAX_COURSE) return 'ABOVE MAX COURSE';
+  if(outOfField(s)) return 'OFF THE PAD';
+  if(tooClose(s)) return 'TOO CLOSE TO ROBOT';
+  if(occupiedAt(s)) return 'OCCUPIED';
+  return '';
+}
+const rotLabel=()=>'ORIENTATION TANGENT '+(rotOffset>=0?'+':'')+rotOffset+'°';
+function updateGhost(){
+  if(!hover||phase!=='idle'||roundOver||isCollapsing()){ ghost.visible=false; hud.textContent=rotLabel()+' · Q / E TO ROTATE'; return; }
+  const bad=invalidReason(hover);
+  ghost.position.set(hover.x,hover.r*BR.H+BR.H/2,hover.z); ghost.rotation.y=hover.yaw;
+  ghost.material=bad?ghostMatBad:ghostMatOk; ghost.visible=true;
+  hud.textContent=`COURSE ${hover.r+1} · (${hover.x.toFixed(2)}, ${hover.z.toFixed(2)}) · ${rotLabel()}`+(bad?' · '+bad:'');
+}
+let down=null;
+canvas.addEventListener('pointerdown',e=>{ down={ x:e.clientX, y:e.clientY, t:performance.now(), b:e.button }; });
+canvas.addEventListener('pointermove',e=>{ if(e.buttons) return; hover=slotAt(e); updateGhost(); });
+canvas.addEventListener('pointerleave',()=>{ hover=null; updateGhost(); });
+window.addEventListener('pointerup',e=>{
+  if(!down) return;
+  const d=down; down=null;
+  if(d.b!==0||Math.hypot(e.clientX-d.x,e.clientY-d.y)>6||performance.now()-d.t>700) return;
+  const r=canvas.getBoundingClientRect();
+  if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) return;
+  const s=slotAt(e); if(s) attemptPlace(s,'PLAYER');
+});
+function rotate(deg){
+  rotOffset+=deg; if(rotOffset>180) rotOffset-=360; if(rotOffset<=-180) rotOffset+=360;
+  if(hover) hover=makeSlot(hover.x,hover.z,hover.r,tangentYaw(hover.x,hover.z)+rotOffset*Math.PI/180);
+  updateGhost();
+}
+window.addEventListener('keydown',e=>{ if(e.key==='q'||e.key==='Q') rotate(-15); if(e.key==='e'||e.key==='E') rotate(15); });
+
+// ---------- rounds + buttons ----------
+function clearBricks(){
+  for(const b of bricks.values()) scene.remove(b.mesh);
+  for(const f of falling){ scene.remove(f.mesh); f.mesh.material.dispose(); f.mesh.children[0].material.dispose(); }
+  bricks.clear(); falling=[];
+}
+function newRound(){
+  clearBricks();
+  order=[]; trace=[]; moveIdx=0; nextId=1;
+  succCount=0; failCount=0; collapseCount=0; fallenTotal=0; roundOver=false; lastReachFrac=0;
+  ai={ failed:new Set(), successFracs:[] };
+  pendingResolve=null; flash=null; flashBox.visible=false; tagEl.hidden=true;
+  carried.visible=false; phase='idle'; goal={ th:cur.th, q1:REST.q1, q2:REST.q2 }; linkMat.color.set(tok('--robot'));
+  traceBox.innerHTML=''; discoverBox.hidden=true; aiBox.hidden=true;
+  setDispatchNow('Standing by.');
+  updateStats(); updateGhost();
+}
+el('suggestBtn').onclick=suggestMove;
+el('newRoundBtn').onclick=newRound;
+el('resetBtn').onclick=()=>{ rotOffset=0; setView('reset'); newRound(); };
+el('rotL').onclick=()=>rotate(-15);
+el('rotR').onclick=()=>rotate(15);
+el('viewReset').onclick=()=>setView('reset');
+el('viewTop').onclick=()=>setView('top');
+el('viewSide').onclick=()=>setView('side');
+el('domeBtn').onclick=()=>{ dome.visible=!dome.visible; el('domeBtn').textContent='REACH DOME: '+(dome.visible?'ON':'OFF'); };
+el('undoBtn').onclick=()=>{
+  if(!order.length||phase!=='idle'||isCollapsing()||roundOver) return;
+  const id=order.pop(), b=bricks.get(id);
+  scene.remove(b.mesh); bricks.delete(id); succCount=Math.max(0,succCount-1);
+  logTrace('PLAYER',b,false,'UNDONE',true);
+  const fell=settle();
+  if(fell){ collapseCount++; logTrace('GRAVITY',b,false,'COLLAPSE ×'+fell); setDispatchNow(`Pulled that one out and the rest let go — ${fell} brick${fell===1?'':'s'} down.`); }
+  else setDispatchNow('Took the last brick back.');
+  updateStats();
+};
+
+// ---------- go ----------
+applyTheme();
+const mq=window.matchMedia('(prefers-color-scheme: dark)');
+if(mq.addEventListener) mq.addEventListener('change',applyTheme);
+resize(); setView('reset'); updateStats();
+let last=performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  controls.update(); armStep(dt); updateFalling(dt); updateFlash(dt);
+  renderer.render(scene,camera);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body></html>
